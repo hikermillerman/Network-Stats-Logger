@@ -1,6 +1,7 @@
 package com.darryncampbell.networkstatslogger;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.AppOpsManager;
 import android.app.ProgressDialog;
@@ -14,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -39,7 +41,6 @@ import static com.darryncampbell.networkstatslogger.utils.TimingHelper.getTestDu
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
     private ArrayList<Package> packageList;
     private RecyclerView.Adapter packageAdapter;
     private NetworkStatsUpdateServiceReceiver networkStatsUpdateServiceReceiver;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
         statsUpdateDialog = new ProgressDialog(this);
         packageList = getPackagesData();
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         packageAdapter = new PackageAdapter(packageList);
         recyclerView.setAdapter(packageAdapter);
@@ -71,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (!hasPermissions()) {
+        /*if (!hasPermissions()) {
             requestPermissions();
-        }
+        }*/
 
         if (networkStatsUpdateServiceReceiver == null)
             networkStatsUpdateServiceReceiver = new NetworkStatsUpdateServiceReceiver();
@@ -100,62 +101,49 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.menu_request_permissions) {
             requestPermissions();
             return true;
-        }
-        else if (id == R.id.menu_start_test) {
-            if (TimingHelper.getIsTestRunning(this))
-            {
+        } else if (id == R.id.menu_start_test) {
+            if (TimingHelper.getIsTestRunning(this)) {
                 Toast.makeText(this, "Test is already running.  Please stop current test first", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
+            } else {
                 TimingHelper.setStartTime(this);
                 TimingHelper.setIsTestRunning(this, true);
                 Toast.makeText(this, "Started test at " + TimingHelper.getStartTimeForUI(this), Toast.LENGTH_LONG).show();
             }
             return true;
-        }
-        else if (id == R.id.menu_update_stats) {
-            if (!TimingHelper.getIsTestRunning(this))
-            {
+        } else if (id == R.id.menu_update_stats) {
+            if (!TimingHelper.getIsTestRunning(this)) {
                 Toast.makeText(this, "There is no test running", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
+            } else {
                 long testDurationInMins = getTestDurationInMins(System.currentTimeMillis(), this);
-                if (testDurationInMins <= Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME)
+                if (testDurationInMins <= Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME) {
                     Toast.makeText(this, getString(R.string.minimum_duration_error), Toast.LENGTH_LONG).show();
-                UpdateNetworkStats("Updating network stats so far during test (UI only)\nTest duration: " + testDurationInMins + "mins",
+                }
+                updateNetworkStats("Updating network stats so far during test (UI only)\nTest duration: " + testDurationInMins + "mins",
                         false);
             }
             return true;
-        }
-        else if (id == R.id.menu_update_stats_and_log) {
-            if (!TimingHelper.getIsTestRunning(this))
-            {
+        } else if (id == R.id.menu_update_stats_and_log) {
+            if (!TimingHelper.getIsTestRunning(this)) {
                 Toast.makeText(this, "There is no test running", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
+            } else {
                 long testDurationInMins = getTestDurationInMins(System.currentTimeMillis(), this);
-                if (testDurationInMins <= Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME)
+                if (testDurationInMins <= Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME) {
                     Toast.makeText(this, getString(R.string.minimum_duration_error), Toast.LENGTH_LONG).show();
-                UpdateNetworkStats("Updating network stats so far during test (will log result)\nTest duration: " + testDurationInMins + "mins",
+                }
+                updateNetworkStats("Updating network stats so far during test (will log result)\nTest duration: " + testDurationInMins + "mins",
                         true);
             }
             return true;
-        }
-        else if (id == R.id.menu_stop_test) {
-            if (!TimingHelper.getIsTestRunning(this))
-            {
+        } else if (id == R.id.menu_stop_test) {
+            if (!TimingHelper.getIsTestRunning(this)) {
                 Toast.makeText(this, "There is no test running", Toast.LENGTH_LONG).show();
-            }
-            else
-            {
+            } else {
                 TimingHelper.setIsTestRunning(this, false);
                 long testDurationInMins = getTestDurationInMins(System.currentTimeMillis(), this);
-                if (testDurationInMins < Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME)
+                if (testDurationInMins < Constants.MISC.MINIMUM_RECOMMENDED_TEST_TIME) {
                     Toast.makeText(this, getString(R.string.minimum_duration_error), Toast.LENGTH_LONG).show();
-                UpdateNetworkStats("Gathering network stats at the end of the test\nTest duration: " + testDurationInMins + "mins",
+                }
+                updateNetworkStats("Gathering network stats at the end of the test\nTest duration: " + testDurationInMins + "mins",
                         true);
             }
         }
@@ -165,10 +153,9 @@ public class MainActivity extends AppCompatActivity {
 
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    private void UpdateNetworkStats(String messageToUser, Boolean saveStatsToFile)
-    {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-        {
+    @SuppressLint("ObsoleteSdkInt")
+    private void updateNetworkStats(String messageToUser, boolean saveStatsToFile) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             statsUpdateDialog.setMessage(messageToUser);
             statsUpdateDialog.setTitle("Retrieving network stats");
             statsUpdateDialog.setIndeterminate(false);
@@ -188,20 +175,18 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.ACTION.PACKAGE_LIST_UPDATED))
-            {
+            if (Constants.ACTION.PACKAGE_LIST_UPDATED.equals(intent.getAction())) {
                 ArrayList<Package> packageListLocal = intent.getParcelableArrayListExtra(Constants.PARAMS.PACKAGE_LIST);
                 packageList.clear();
                 packageList.addAll(packageListLocal);
                 packageAdapter.notifyDataSetChanged();
                 statsUpdateDialog.dismiss();
-                Boolean saveStatsToFile = intent.getBooleanExtra(Constants.PARAMS.SAVE_STATS_TO_FILE, false);
-                if (saveStatsToFile)
-                {
+                boolean saveStatsToFile = intent.getBooleanExtra(Constants.PARAMS.SAVE_STATS_TO_FILE, false);
+                if (saveStatsToFile) {
                     StorageHelper fileHelper = new StorageHelper();
                     String fileLocation = fileHelper.persistNetworkStatisticsToFile(getApplicationContext(), packageList);
                     if (!fileLocation.equals(""))
-                        Toast.makeText(getApplicationContext(), "Statistics written to " + fileLocation , Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Statistics written to " + fileLocation, Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -234,21 +219,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         //  Go through the package list and set whether the entries have duplicate uids
-        for (int i = 0; i < packageList.size(); i++)
-        {
+        for (int i = 0; i < packageList.size(); i++) {
             if (packageList.get(i).getDuplicateUids())
                 continue;
             int packageUid = packageList.get(i).getPackageUid();
-            for (int j = 0; j < packageList.size(); j++)
-            {
-                if (i == j)
-                    continue;
-                else
-                {
-                    if (packageUid == packageList.get(j).getPackageUid()) {
-                        packageList.get(i).setDuplicateUids(true);
-                        packageList.get(j).setDuplicateUids(true);
-                    }
+            for (int j = 0; j < packageList.size(); j++) {
+                if (packageUid == packageList.get(j).getPackageUid()) {
+                    packageList.get(i).setDuplicateUids(true);
+                    packageList.get(j).setDuplicateUids(true);
                 }
             }
         }
@@ -266,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA);
             uid = packageInfo.applicationInfo.uid;
-        } catch (PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException ignored) {
         }
         return uid;
     }
@@ -287,12 +265,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean hasPermissionToReadPhoneStats() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-            return false;
-        } else {
-            return true;
-        }
+        return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_DENIED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_DENIED;
     }
 
     private void requestPhoneStateStats() {
@@ -300,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
                 Constants.PERMISSION.PERMISSION_REQUEST);
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private boolean hasPermissionToReadNetworkHistory() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -311,26 +286,28 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         Toast.makeText(this, "Usage Stats permission is required", Toast.LENGTH_LONG).show();
-        appOps.startWatchingMode(AppOpsManager.OPSTR_GET_USAGE_STATS,
-                getApplicationContext().getPackageName(),
-                new AppOpsManager.OnOpChangedListener() {
-                    @Override
-                    @TargetApi(Build.VERSION_CODES.M)
-                    public void onOpChanged(String op, String packageName) {
-                        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
-                                android.os.Process.myUid(), getPackageName());
-                        if (mode != AppOpsManager.MODE_ALLOWED) {
-                            return;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            appOps.startWatchingMode(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    getPackageName(),
+                    new AppOpsManager.OnOpChangedListener() {
+                        @Override
+                        @RequiresApi(Build.VERSION_CODES.M)
+                        public void onOpChanged(String op, String packageName) {
+                            int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                                    android.os.Process.myUid(), getPackageName());
+                            if (mode != AppOpsManager.MODE_ALLOWED) {
+                                return;
+                            }
+                            appOps.stopWatchingMode(this);
+                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                            if (getIntent().getExtras() != null) {
+                                intent.putExtras(getIntent().getExtras());
+                            }
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
                         }
-                        appOps.stopWatchingMode(this);
-                        Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                        if (getIntent().getExtras() != null) {
-                            intent.putExtras(getIntent().getExtras());
-                        }
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        getApplicationContext().startActivity(intent);
-                    }
-                });
+                    });
+        }
         requestReadNetworkHistoryAccess();
         return false;
     }

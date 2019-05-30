@@ -8,6 +8,7 @@ import com.darryncampbell.networkstatslogger.R;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * Created by darry on 01/02/2018.
@@ -20,7 +21,7 @@ public class TimingHelper {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putLong(context.getString(R.string.saved_start_time), System.currentTimeMillis());
-        editor.commit();
+        editor.apply();
     }
 
     public static long getStartTime(Context context)
@@ -32,7 +33,7 @@ public class TimingHelper {
     public static String getStartTimeForUI(Context context)
     {
         long startTime = getStartTime(context);
-        DateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+        DateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss", Locale.getDefault());
         return formatter.format(startTime);
     }
 
@@ -41,7 +42,7 @@ public class TimingHelper {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(context.getString(R.string.saved_is_test_running), value);
-        editor.commit();
+        editor.apply();
     }
 
     public static boolean getIsTestRunning(Context context)

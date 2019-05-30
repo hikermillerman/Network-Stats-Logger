@@ -2,6 +2,7 @@ package com.darryncampbell.networkstatslogger.model;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -19,20 +20,20 @@ import java.util.List;
 
 public class PackageAdapter extends RecyclerView.Adapter<PackageAdapter.PackageViewHolder> {
 
-    List<Package> mPackageList;
+    private List<Package> mPackageList;
 
     public PackageAdapter(List<Package> packageList) {
         mPackageList = packageList;
     }
 
     @Override
-    public PackageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public PackageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.package_card, parent, false);
         return new PackageViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(PackageViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull PackageViewHolder holder, int position) {
         Package packageItem = mPackageList.get(position);
         holder.name.setText(packageItem.getName());
         holder.packageName.setText(packageItem.getPackageName());
@@ -90,7 +91,7 @@ public class PackageAdapter extends RecyclerView.Adapter<PackageAdapter.PackageV
         long thousand= 1000L;
         long million = 1000000L;
         long billion = 1000000000L;
-        long trillion= 1000000000000L;
+        // long trillion= 1000000000000L;
         long number = Math.round(packets);
         if ((number >= thousand) && (number < million)) {
             float fraction = calculateFraction(number, thousand);
@@ -98,14 +99,14 @@ public class PackageAdapter extends RecyclerView.Adapter<PackageAdapter.PackageV
         } else if ((number >= million) && (number < billion)) {
             float fraction = calculateFraction(number, million);
             return Float.toString(fraction) + "M";
-        } else if ((number >= billion) && (number < trillion)) {
+        } else if (number >= billion) {
             float fraction = calculateFraction(number, billion);
             return Float.toString(fraction) + "B";
         }
         return Long.toString(number);
     }
 
-    public float calculateFraction(long number, long divisor) {
+    private float calculateFraction(long number, long divisor) {
         long truncate = (number * 10L + (divisor / 2L)) / divisor;
         float fraction = (float) truncate / 10F;
         return fraction;
@@ -115,7 +116,7 @@ public class PackageAdapter extends RecyclerView.Adapter<PackageAdapter.PackageV
         return mPackageList.size();
     }
 
-    public class PackageViewHolder extends RecyclerView.ViewHolder {
+    class PackageViewHolder extends RecyclerView.ViewHolder {
         Context context;
         TextView name;
         TextView packageUid;
@@ -142,7 +143,7 @@ public class PackageAdapter extends RecyclerView.Adapter<PackageAdapter.PackageV
         TextView transmittedPacketsWifi;
         TextView transmittedPacketsMobile;
 
-        public PackageViewHolder(View itemView) {
+        PackageViewHolder(View itemView) {
             super(itemView);
             context = itemView.getContext();
             name = (TextView) itemView.findViewById(R.id.name);

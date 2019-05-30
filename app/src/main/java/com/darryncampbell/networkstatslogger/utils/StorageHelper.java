@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by darry on 01/02/2018.
@@ -28,25 +29,21 @@ public class StorageHelper {
 
     public static final String TAG = "NetworkStatsLog";
 
-    public String persistNetworkStatisticsToFile(Context context, ArrayList<Package> packageList)
-    {
-        File path =  Environment.getExternalStoragePublicDirectory(
+    public String persistNetworkStatisticsToFile(Context context, ArrayList<Package> packageList) {
+        File path = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.getDefault());
         String currentDateTimeStringFileName = df.format(new Date());
-        SimpleDateFormat humanFormat = new SimpleDateFormat("EEE d MMM yyyy HH:mm:ss");
+        SimpleDateFormat humanFormat = new SimpleDateFormat("EEE d MMM yyyy HH:mm:ss", Locale.getDefault());
         String currentDateTimeStringHumanReadable = humanFormat.format(new Date());
         String endDateTimeHumanReadable = humanFormat.format(TimingHelper.getStartTime(context));
         File file = new File(path, "network_stats_" + currentDateTimeStringFileName + ".csv");
-        Boolean isWriteable = isExternalStorageWritable();
-        if (isWriteable)
-        {
-            try
-            {
+        boolean writable = isExternalStorageWritable();
+        if (writable) {
+            try {
                 path.mkdirs();
                 file.createNewFile();
-                if (file.exists())
-                {
+                if (file.exists()) {
                     Log.i(TAG, "Log file location: " + file.getAbsolutePath());
                     String newLine = "\n";
                     OutputStream os = new FileOutputStream(file);
@@ -57,8 +54,7 @@ public class StorageHelper {
                     os.write(deviceInformation.getBytes());
                     os.write(CSVHeaderRow().getBytes());
                     os.write(newLine.getBytes());
-                    for (int i = 0; i < packageList.size(); i++)
-                    {
+                    for (int i = 0; i < packageList.size(); i++) {
                         os.write(CSVRow(packageList.get(i)).getBytes());
                         os.write(newLine.getBytes());
                     }
@@ -66,7 +62,7 @@ public class StorageHelper {
                     // Tell the media scanner about the new file so that it is
                     // immediately available to the user.
                     MediaScannerConnection.scanFile(context,
-                            new String[] { file.toString() }, null,
+                            new String[]{file.toString()}, null,
                             new MediaScannerConnection.OnScanCompletedListener() {
                                 public void onScanCompleted(String path, Uri uri) {
                                     Log.i("ExternalStorage", "Scanned " + path + ":");
@@ -74,9 +70,7 @@ public class StorageHelper {
                                 }
                             });
                     return file.getAbsolutePath();
-                }
-                else
-                {
+                } else {
                     Log.e(TAG, "Error creating log file");
                     Toast.makeText(context, "Error creating log file", Toast.LENGTH_LONG).show();
                     return "";
@@ -96,8 +90,7 @@ public class StorageHelper {
         return "";
     }
 
-    public static String CSVHeaderRow()
-    {
+    private static String CSVHeaderRow() {
         return "Application Name," +
                 "Package Name," +
                 "Package Uid," +
@@ -115,8 +108,7 @@ public class StorageHelper {
                 "Tx Packets (Total),";
     }
 
-    public String CSVRow(Package packageStats)
-    {
+    private String CSVRow(Package packageStats) {
         return packageStats.getName() + "," + packageStats.getPackageName() + "," +
                 packageStats.getPackageUid() + "," +
                 packageStats.getReceivedBytesWifi() + "," + packageStats.getReceivedBytesMobile() + "," +
@@ -129,10 +121,7 @@ public class StorageHelper {
 
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
 }

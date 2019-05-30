@@ -27,7 +27,7 @@ public class Package implements Parcelable, Comparable {
     private long transmittedPacketsMobile;
     private long transmittedPacketsTotal;
 
-    protected Package(Parcel in) {
+    private Package(Parcel in) {
         name = in.readString();
         version = in.readString();
         packageName = in.readString();
